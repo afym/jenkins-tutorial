@@ -1,0 +1,25 @@
+nodes = [
+  { :hostname => 'jenkins-master', :ip => '192.168.0.80', :box => 'generic/centos7', :cpu => 1, :ram => 512, :provision => 'provision/master'}
+  #{ :hostname => 'jenkins-slave',  :ip => '192.168.0.81', :box => 'generic/centos7', :cpu => 1, :ram => 256, :provision => 'provision/slave' }
+]
+
+Vagrant.configure("2") do |config|
+  nodes.each do |node|
+    config.vm.define node[:hostname] do |nodeconfig|
+      nodeconfig.vm.box = node[:box]
+      nodeconfig.vm.hostname = node[:hostname] + ".box"
+      nodeconfig.vm.network "public_network", ip: node[:ip]
+      nodeconfig.vm.synced_folder node[:provision], "/vagrant/"
+
+      nodeconfig.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", node[:ram]]
+        vb.customize ["modifyvm", :id, "--cpus", node[:cpu]]
+      end
+    end
+  end
+
+  config.vm.provision "ansible_local" do |ansible|
+    ansible.playbook = "playbook.yml"
+    ansible.verbose = true
+  end
+end

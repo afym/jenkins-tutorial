@@ -1,0 +1,6 @@
+---
+  - hosts: all
+    become: true
+    tasks:
+      - name: "Installing Java for Jenkins"
+        yum: name=java state=latest
